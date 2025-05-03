@@ -3,11 +3,11 @@
 import useLogic from "./useLogic"
 
 export default function Page() {
-  const { board } = useLogic()
+  const { board, predictAI } = useLogic()
 
   function getKrFromPid(pid: number) {
     if (pid === 0) {
-      return "장(싱)"
+      return "장(상)"
     } else if (pid === 1) {
       return "왕(상)"
     } else if (pid === 2) {
@@ -32,7 +32,7 @@ export default function Page() {
   }
 
   return (
-    <div>
+    <div onClick={predictAI}>
       {board.map((row, rowIndex) => (
         <div key={rowIndex} style={{ display: "flex" }}>
           {row.map((cell, cellIndex) => (
