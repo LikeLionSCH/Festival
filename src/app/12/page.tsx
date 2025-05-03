@@ -31,8 +31,6 @@ export default function Page() {
     }
   }
 
-  console.log("board", board)
-
   return (
     <div>
       {board.map((row, rowIndex) => (
