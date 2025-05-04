@@ -8,7 +8,7 @@ const boardAtom = atom<Array<Array<number>>>([])
 
 function useLogic() {
   const [board, setBoard] = useAtom(boardAtom)
-  const [turn, setTurn] = useState(0)
+  const [turn, setTurn] = useState<"up" | "down">("down")
 
   useEffect(() => {
     resetBoard()
@@ -34,7 +34,7 @@ function useLogic() {
 
     const { data } = await axios.post("http://192.168.0.100:8000/predict", {
       board: boardData,
-      turn: turn,
+      turn: turn === "up" ? 0 : 1,
     })
 
     const action = data.predicted_action
@@ -54,12 +54,11 @@ function useLogic() {
     console.log(
       `도착: index = ${target_index}, row = ${target_row}, col = ${target_col}`
     )
-
-    const newBoard = [...board]
-    newBoard[target_row][target_col] = newBoard[start_row][start_col]
-    newBoard[start_row][start_col] = -1
-    setBoard(newBoard)
-    setTurn(turn === 0 ? 1 : 0) // 턴 변경
+    if (data.done) {
+      alert("게임 종료 / " + data.reward)
+      return
+    }
+    movePiece(start_row, start_col, target_row, target_col) // AI의 예측 이동
   }
 
   function resetBoard() {
@@ -80,7 +79,192 @@ function useLogic() {
     setBoard(newBoard)
   }
 
-  return { board, predictAI }
+  function movePiece(
+    startRow: number,
+    startCol: number,
+    targetRow: number,
+    targetCol: number
+  ) {
+    // 이동할 칸이 유효한지 확인
+    if (!isValidMove(startRow, startCol, targetRow, targetCol)) {
+      alert("Invalid move")
+      return
+    }
+
+    let newBoard = [...board]
+    // 이동할 칸에 기물 있는지 확인
+    if (board[targetRow][targetCol] !== -1) {
+      newBoard = catchPiece(board[targetRow][targetCol])
+    }
+    newBoard[targetRow][targetCol] = newBoard[startRow][startCol]
+    newBoard[startRow][startCol] = -1
+    setBoard(newBoard)
+    setTurn(turn === "up" ? "down" : "up") // 턴 변경
+  }
+
+  function catchPiece(targetPiece: number) {
+    const newBoard = [...board]
+    // 상단 기물 처리
+    if (targetPiece === 0) {
+      if (board[6][2] !== -1) {
+        newBoard[7][2] = 8
+      } else {
+        newBoard[6][2] = 8
+      }
+    }
+    if (targetPiece === 2) {
+      if (board[6][1] !== -1) {
+        newBoard[7][1] = 6
+      } else {
+        newBoard[6][1] = 6
+      }
+    }
+    if (targetPiece === 3) {
+      if (board[6][0] !== -1) {
+        newBoard[7][0] = 5
+      } else {
+        newBoard[6][0] = 5
+      }
+    }
+    if (targetPiece === 4) {
+      if (board[6][0] !== -1) {
+        newBoard[7][0] = 5
+      } else {
+        newBoard[6][0] = 5
+      }
+    }
+
+    // 하단 기물 처리
+    if (targetPiece === 5) {
+      if (board[1][2] !== -1) {
+        newBoard[0][2] = 3
+      } else {
+        newBoard[1][2] = 3
+      }
+    }
+    if (targetPiece === 6) {
+      if (board[1][1] !== -1) {
+        newBoard[0][1] = 0
+      } else {
+        newBoard[1][1] = 0
+      }
+    }
+    if (targetPiece === 8) {
+      if (board[1][0] !== -1) {
+        newBoard[0][0] = 2
+      } else {
+        newBoard[1][0] = 2
+      }
+    }
+    if (targetPiece === 9) {
+      if (board[1][2] !== -1) {
+        newBoard[0][2] = 3
+      } else {
+        newBoard[1][2] = 3
+      }
+    }
+
+    return newBoard
+  }
+  //갈 수 있는 칸인지 확인
+  function isValidMove(
+    startRow: number,
+    startCol: number,
+    targetRow: number,
+    targetCol: number
+  ) {
+    const piece = board[startRow][startCol]
+    const targetPiece = board[targetRow][targetCol]
+    // 윗사람이 자신의 말이 있는 곳으로 이동 불가
+    if (piece <= 4 && targetPiece <= 4 && targetPiece !== -1) {
+      return false
+    }
+    if (piece >= 5 && targetPiece >= 5) {
+      return false
+    }
+    // 이동할 칸이 보드 범위를 벗어나는지 확인
+    if (startRow >= 2 && startRow <= 5) {
+      if (targetRow < 2 || targetRow > 5) {
+        return false
+      }
+    }
+
+    if (startRow < 2) {
+      if (turn === "down") {
+        return false
+      }
+      return targetRow < 5
+    }
+    if (startRow > 5) {
+      if (turn === "up") {
+        return false
+      }
+      return targetRow > 2
+    }
+
+    const rowDiff = Math.abs(targetRow - startRow)
+    const colDiff = Math.abs(targetCol - startCol)
+
+    // 상하좌우 기물 이동
+    if (piece === 0 || piece === 8) {
+      if (rowDiff > 0 && colDiff === 0) {
+        return true
+      }
+      if (colDiff > 0 && rowDiff === 0) {
+        return true
+      }
+      return false
+    }
+    // 대각선 기물 이동
+    if (piece === 2 || piece === 6) {
+      if (rowDiff === 1 && colDiff === 1) {
+        return true
+      }
+      return false
+    }
+    // 왕 기물 이동
+    if (piece === 1 || piece === 7) {
+      if (rowDiff <= 1 && colDiff <= 1) {
+        return true
+      }
+      return false
+    }
+    // 자 기물 이동
+    if (piece === 3) {
+      return rowDiff === 1 && startRow < targetRow
+    }
+    if (piece === 5) {
+      return rowDiff === 1 && startRow > targetRow
+    }
+    // 후 기물 이동
+    if (piece === 4) {
+      if (rowDiff === 1 && colDiff === 0) {
+        return true
+      }
+      if (colDiff === 1 && rowDiff === 0) {
+        return true
+      }
+      if (rowDiff === 1 && colDiff === 1) {
+        return startRow < targetRow
+      }
+      return false
+    }
+    if (piece === 9) {
+      if (rowDiff === 1 && colDiff === 0) {
+        return true
+      }
+      if (colDiff === 1 && rowDiff === 0) {
+        return true
+      }
+      if (rowDiff === 1 && colDiff === 1) {
+        return startRow > targetRow
+      }
+      return false
+    }
+    return true
+  }
+
+  return { board, predictAI, movePiece, turn }
 }
 
 export default useLogic
