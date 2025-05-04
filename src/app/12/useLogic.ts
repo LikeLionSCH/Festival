@@ -9,6 +9,8 @@ const boardAtom = atom<Array<Array<number>>>([])
 function useLogic() {
   const [board, setBoard] = useAtom(boardAtom)
   const [turn, setTurn] = useState<"up" | "down">("down")
+  const [arrivedUpPlayer, setArrivedUpPlayer] = useState(false)
+  const [arrivedDownPlayer, setArrivedDownPlayer] = useState(false)
 
   useEffect(() => {
     resetBoard()
@@ -54,11 +56,12 @@ function useLogic() {
     console.log(
       `도착: index = ${target_index}, row = ${target_row}, col = ${target_col}`
     )
+    movePiece(start_row, start_col, target_row, target_col) // AI의 예측 이동
+
     if (data.done) {
       alert("게임 종료 / " + data.reward)
       return
     }
-    movePiece(start_row, start_col, target_row, target_col) // AI의 예측 이동
   }
 
   function resetBoard() {
@@ -91,13 +94,23 @@ function useLogic() {
       return
     }
 
+    const piece = board[startRow][startCol]
     let newBoard = [...board]
     // 이동할 칸에 기물 있는지 확인
     if (board[targetRow][targetCol] !== -1) {
       newBoard = catchPiece(board[targetRow][targetCol])
     }
     newBoard[targetRow][targetCol] = newBoard[startRow][startCol]
+    if (newBoard[targetRow][targetCol] === 3 && targetRow === 5) {
+      newBoard[targetRow][targetCol] = 4
+    } else if (newBoard[targetRow][targetCol] === 5 && targetRow === 2) {
+      newBoard[targetRow][targetCol] = 9
+    }
     newBoard[startRow][startCol] = -1
+
+    if (piece === 1) {
+    }
+
     setBoard(newBoard)
     setTurn(turn === "up" ? "down" : "up") // 턴 변경
   }

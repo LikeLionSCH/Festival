@@ -8,6 +8,8 @@ type Position = {
   col: number
 }
 
+const cellSize = 100 // 각 셀의 크기 (가로, 세로)
+
 export default function Page() {
   const { board, predictAI, movePiece, turn } = useLogic()
   const [startPosition, setStartPosition] = useState<Position>({
@@ -17,32 +19,66 @@ export default function Page() {
 
   useEffect(() => {
     console.log("턴:", turn)
+    console.log("보드 상태:", JSON.stringify(board))
+    if (board.length === 0) {
+      return
+    }
     if (turn === "up") {
       predictAI()
     }
-  }, [turn])
+  }, [turn, board])
 
-  function getKrFromPid(pid: number) {
+  function getKrFromPid(pid: number): { name: string; color: string } | null {
     if (pid === 0) {
-      return "상하(상)"
+      return {
+        name: "장",
+        color: "red",
+      }
     } else if (pid === 1) {
-      return "왕(상)"
+      return {
+        name: "왕",
+        color: "red",
+      }
     } else if (pid === 2) {
-      return "대각(상)"
+      return {
+        name: "상",
+        color: "red",
+      }
     } else if (pid === 3) {
-      return "앞(상)"
+      return {
+        name: "자",
+        color: "red",
+      }
     } else if (pid === 4) {
-      return "후(상)"
+      return {
+        name: "후",
+        color: "red",
+      }
     } else if (pid === 5) {
-      return "앞(하)"
+      return {
+        name: "자",
+        color: "green",
+      }
     } else if (pid === 6) {
-      return "대각(하)"
+      return {
+        name: "상",
+        color: "green",
+      }
     } else if (pid === 7) {
-      return "왕(하)"
+      return {
+        name: "왕",
+        color: "green",
+      }
     } else if (pid === 8) {
-      return "상하(하)"
+      return {
+        name: "장",
+        color: "green",
+      }
     } else if (pid === 9) {
-      return "후(하)"
+      return {
+        name: "후",
+        color: "green",
+      }
     } else {
       return null
     }
@@ -60,24 +96,80 @@ export default function Page() {
     }
   }
 
+  function getCell(row: number, col: number) {
+    const cell = board[row][col]
+    if (cell === -1) {
+      return null
+    }
+    const piece = getKrFromPid(cell)
+    if (piece) {
+      return (
+        <div
+          style={{
+            width: `${cellSize}px`,
+            height: `${cellSize}px`,
+            backgroundColor: piece.color,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            left: `${col * cellSize}px`,
+            top: `${row * cellSize}px`,
+            transition: "all 1s linear",
+          }}
+        >
+          <img
+            style={{
+              width: `${cellSize - 10}px`,
+              height: `${cellSize - 10}px`,
+              rotate: piece.color === "red" ? "180deg" : "0deg",
+            }}
+            src={`/12/${piece.name}.png`}
+            alt="piece"
+          />
+        </div>
+      )
+    }
+    return null
+  }
+
   return (
-    <div>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100vh",
+      }}
+    >
       {board.map((row, rowIndex) => (
         <div key={rowIndex} style={{ display: "flex" }}>
           {row.map((cell, cellIndex) => (
             <div
-              key={cellIndex}
+              key={cell === -1 ? `${cellIndex}-${rowIndex}` : cell}
               onClick={() => handleCellClick(rowIndex, cellIndex)}
               style={{
-                width: "50px",
-                height: "50px",
+                width: `${cellSize}px`,
+                height: `${cellSize}px`,
                 border: "1px solid black",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
               }}
             >
-              {getKrFromPid(board[rowIndex][cellIndex])}
+              {getCell(rowIndex, cellIndex)}
+              {startPosition.row === rowIndex &&
+                startPosition.col === cellIndex && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      width: `${cellSize}px`,
+                      height: `${cellSize}px`,
+                      backgroundColor: "rgba(255, 0, 0, 0.5)",
+                      borderRadius: "50%",
+                    }}
+                  ></div>
+                )}
             </div>
           ))}
         </div>
