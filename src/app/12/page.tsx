@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import useLogic from "./useLogic"
+import useLogic, { Piece } from "./useLogic"
+import { Snackbar, Stack } from "@mui/material"
 
 type Position = {
   row: number
@@ -11,80 +12,50 @@ type Position = {
 const cellSize = 100 // 각 셀의 크기 (가로, 세로)
 
 export default function Page() {
-  const { board, predictAI, movePiece, turn } = useLogic()
+  const { pieces, predictAI, movePiece, turn, isCanMove, setIsCanMove } =
+    useLogic()
   const [startPosition, setStartPosition] = useState<Position>({
     row: -1,
     col: -1,
   })
 
   useEffect(() => {
-    console.log("턴:", turn)
-    console.log("보드 상태:", JSON.stringify(board))
-    if (board.length === 0) {
+    if (pieces.length === 0) {
       return
     }
     if (turn === "up") {
       predictAI()
     }
-  }, [turn, board])
+  }, [turn, pieces])
 
-  function getKrFromPid(pid: number): { name: string; color: string } | null {
+  function getKrFromPid(pid: number): string | null {
     if (pid === 0) {
-      return {
-        name: "장",
-        color: "red",
-      }
+      return "장"
     } else if (pid === 1) {
-      return {
-        name: "왕",
-        color: "red",
-      }
+      return "왕"
     } else if (pid === 2) {
-      return {
-        name: "상",
-        color: "red",
-      }
+      return "상"
     } else if (pid === 3) {
-      return {
-        name: "자",
-        color: "red",
-      }
+      return "자"
     } else if (pid === 4) {
-      return {
-        name: "후",
-        color: "red",
-      }
+      return "후"
     } else if (pid === 5) {
-      return {
-        name: "자",
-        color: "green",
-      }
+      return "자"
     } else if (pid === 6) {
-      return {
-        name: "상",
-        color: "green",
-      }
+      return "상"
     } else if (pid === 7) {
-      return {
-        name: "왕",
-        color: "green",
-      }
+      return "왕"
     } else if (pid === 8) {
-      return {
-        name: "장",
-        color: "green",
-      }
+      return "장"
     } else if (pid === 9) {
-      return {
-        name: "후",
-        color: "green",
-      }
+      return "후"
     } else {
       return null
     }
   }
 
   function handleCellClick(row: number, col: number) {
+    console.log("clicked", row, col)
     if (startPosition.row === -1 && startPosition.col === -1) {
       // 첫 번째 클릭: 시작 위치 설정
       setStartPosition({ row, col })
@@ -96,19 +67,21 @@ export default function Page() {
     }
   }
 
-  function getCell(row: number, col: number) {
-    const cell = board[row][col]
-    if (cell === -1) {
-      return null
+  function Cell({ piece }: { piece: Piece }) {
+    const { row, col, pieceId } = piece
+    if (row === 0 || row === 1 || row === 6 || row === 7) {
     }
-    const piece = getKrFromPid(cell)
+    const krName = getKrFromPid(pieceId)
     if (piece) {
       return (
         <div
+          onClick={() => handleCellClick(row, col)}
+          key={`${piece.key}`}
           style={{
+            position: "absolute",
             width: `${cellSize}px`,
             height: `${cellSize}px`,
-            backgroundColor: piece.color,
+            backgroundColor: piece.team === "up" ? "red" : "green",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -121,9 +94,9 @@ export default function Page() {
             style={{
               width: `${cellSize - 10}px`,
               height: `${cellSize - 10}px`,
-              rotate: piece.color === "red" ? "180deg" : "0deg",
+              rotate: piece.team === "up" ? "180deg" : "0deg",
             }}
-            src={`/12/${piece.name}.png`}
+            src={`/12/${krName}.png`}
             alt="piece"
           />
         </div>
@@ -140,40 +113,45 @@ export default function Page() {
         alignItems: "center",
         justifyContent: "center",
         height: "100vh",
+        width: "100vw",
       }}
     >
-      {board.map((row, rowIndex) => (
-        <div key={rowIndex} style={{ display: "flex" }}>
-          {row.map((cell, cellIndex) => (
-            <div
-              key={cell === -1 ? `${cellIndex}-${rowIndex}` : cell}
-              onClick={() => handleCellClick(rowIndex, cellIndex)}
-              style={{
-                width: `${cellSize}px`,
-                height: `${cellSize}px`,
-                border: "1px solid black",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              {getCell(rowIndex, cellIndex)}
-              {startPosition.row === rowIndex &&
-                startPosition.col === cellIndex && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      width: `${cellSize}px`,
-                      height: `${cellSize}px`,
-                      backgroundColor: "rgba(255, 0, 0, 0.5)",
-                      borderRadius: "50%",
-                    }}
-                  ></div>
-                )}
-            </div>
-          ))}
-        </div>
-      ))}
+      <Snackbar
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        open={isCanMove}
+        onClose={() => setIsCanMove(false)}
+        message="이동할 수 없습니다"
+      />
+      <div
+        style={{
+          width: cellSize * 3 + "px",
+          height: cellSize * 8 + "px",
+        }}
+      >
+        {pieces.map((piece) => {
+          return <Cell key={`${piece.key}`} piece={piece} />
+        })}
+        <Stack zIndex={10}>
+          {new Array(8).fill(0).map((_, row) => {
+            return new Array(3).fill(0).map((_, col) => {
+              return (
+                <div
+                  key={`${row}-${col}`}
+                  style={{
+                    position: "absolute",
+                    width: `${cellSize}px`,
+                    height: `${cellSize}px`,
+                    border: "1px solid black",
+                    left: `${col * cellSize}px`,
+                    top: `${row * cellSize}px`,
+                  }}
+                  onClick={() => handleCellClick(row, col)}
+                ></div>
+              )
+            })
+          })}
+        </Stack>
+      </div>
     </div>
   )
 }
