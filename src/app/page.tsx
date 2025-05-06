@@ -16,7 +16,12 @@ export default function Home() {
           <Button onClick={() => push("/12")} variant="outlined">
             십이장기
           </Button>
-          <Button variant="outlined">한글 게임</Button>
+          <Button
+            onClick={() => push("https://ul88.github.io/appTossGameWeb.html")}
+            variant="outlined"
+          >
+            한글 게임
+          </Button>
           <Button variant="outlined">물 채우기</Button>
         </Stack>
       </div>

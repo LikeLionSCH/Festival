@@ -38,25 +38,25 @@ export default function Cell({ piece }: { piece: Piece }) {
 
 function getKrFromPid(pid: number): string | null {
   if (pid === 0) {
-    return "장"
+    return "jang"
   } else if (pid === 1) {
-    return "왕"
+    return "king"
   } else if (pid === 2) {
-    return "상"
+    return "sang"
   } else if (pid === 3) {
-    return "자"
+    return "ja"
   } else if (pid === 4) {
-    return "후"
+    return "hu"
   } else if (pid === 5) {
-    return "자"
+    return "ja"
   } else if (pid === 6) {
-    return "상"
+    return "sang"
   } else if (pid === 7) {
-    return "왕"
+    return "king"
   } else if (pid === 8) {
-    return "장"
+    return "jang"
   } else if (pid === 9) {
-    return "후"
+    return "hu"
   } else {
     return null
   }
