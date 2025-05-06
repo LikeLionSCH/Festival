@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import useLogic from "./useLogic"
 import { Alert, Snackbar, Stack } from "@mui/material"
 import Cell, { CellSize } from "./cell"
+import GameModal from "./GameModal"
 
 type Position = {
   row: number
@@ -18,6 +19,7 @@ export default function Page() {
     isCanMove,
     setIsCanMove,
     getPieceFromPosition,
+    userTeam,
   } = useLogic()
   const [startPosition, setStartPosition] = useState<Position>({
     row: -1,
@@ -28,7 +30,7 @@ export default function Page() {
     if (pieces.length === 0) {
       return
     }
-    if (turn === "up") {
+    if (turn !== userTeam) {
       predictAI()
     }
   }, [turn, pieces])
@@ -162,6 +164,7 @@ export default function Page() {
           <SelectedPosition />
         </Stack>
       </div>
+      <GameModal />
     </div>
   )
 }

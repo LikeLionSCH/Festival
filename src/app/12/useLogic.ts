@@ -7,9 +7,22 @@ import { atom, useAtom } from "jotai"
 export type Piece = {
   row: number
   col: number
-  pieceId: number
+  pieceId: PieceId
   team: "up" | "down"
   key: string
+}
+
+enum PieceId {
+  UP_GIRAFFE = 0,
+  UP_LION = 1,
+  UP_ELEPHANT = 2,
+  UP_CHICK = 3,
+  UP_CHICKEN = 4,
+  DOWN_CHICK = 5,
+  DOWN_ELEPHANT = 6,
+  DOWN_LION = 7,
+  DOWN_GIRAFFE = 8,
+  DOWN_CHICKEN = 9,
 }
 
 const IsEmpty = -1
@@ -17,11 +30,19 @@ const IsEmpty = -1
 const piecesAtom = atom<Piece[]>([])
 const turnAtom = atom<"up" | "down">("down")
 const isCanMoveAtom = atom(false)
+const user = atom<"up" | "down">("down")
+const whoWinAtom = atom<false | "up" | "down">(false)
+const arrivedUpUserAtom = atom(false)
+const arrivedDownUserAtom = atom(false)
 
 function useLogic() {
   const [pieces, setPieces] = useAtom(piecesAtom)
   const [turn, setTurn] = useAtom(turnAtom)
   const [isCanMove, setIsCanMove] = useAtom(isCanMoveAtom)
+  const [userTeam, setUserTeam] = useAtom(user)
+  const [whoWin, setWhoWin] = useAtom(whoWinAtom)
+  const [arrivedUpUser, setArrivedUpUser] = useAtom(arrivedUpUserAtom)
+  const [arrivedDownUser, setArrivedDownUser] = useAtom(arrivedDownUserAtom)
 
   useEffect(() => {
     resetBoard()
@@ -77,24 +98,26 @@ function useLogic() {
   function resetBoard() {
     const pieces: Array<Piece> = []
     // 상단 장 배치
-    pieces.push(createPiece(2, 0, 0, "up"))
+    pieces.push(createPiece(2, 0, PieceId.UP_GIRAFFE, "up"))
     // 상단 왕 배치
-    pieces.push(createPiece(2, 1, 1, "up"))
+    pieces.push(createPiece(2, 1, PieceId.UP_LION, "up"))
     // 상단 상 배치
-    pieces.push(createPiece(2, 2, 2, "up"))
+    pieces.push(createPiece(2, 2, PieceId.UP_ELEPHANT, "up"))
     // 상단 자 배치
-    pieces.push(createPiece(3, 1, 3, "up"))
+    pieces.push(createPiece(3, 1, PieceId.UP_CHICK, "up"))
 
     // 하단 자 배치
-    pieces.push(createPiece(4, 1, 5, "down"))
+    pieces.push(createPiece(4, 1, PieceId.DOWN_CHICK, "down"))
     // 하단 상 배치
-    pieces.push(createPiece(5, 0, 6, "down"))
+    pieces.push(createPiece(5, 0, PieceId.DOWN_ELEPHANT, "down"))
     // 하단 왕 배치
-    pieces.push(createPiece(5, 1, 7, "down"))
+    pieces.push(createPiece(5, 1, PieceId.DOWN_LION, "down"))
     // 하단 장 배치
-    pieces.push(createPiece(5, 2, 8, "down"))
+    pieces.push(createPiece(5, 2, PieceId.DOWN_GIRAFFE, "down"))
 
     setPieces(pieces)
+    setTurn("down")
+    setWhoWin(false)
   }
 
   function movePiece(
@@ -131,6 +154,32 @@ function useLogic() {
       piece.pieceId = 4
     } else if (piece.pieceId === 5 && targetRow === 2) {
       piece.pieceId = 9
+    }
+
+    // 싱대 진영에 왕이 들어갔다면
+    const upLine = pieces.find((piece) => piece.pieceId === PieceId.UP_LION)
+    if (upLine && upLine.row === 5) {
+      if (arrivedUpUser) {
+        setTimeout(() => {
+          setWhoWin("up")
+        }, 1000)
+      } else {
+        setArrivedUpUser(true)
+      }
+    } else {
+      setArrivedUpUser(false)
+    }
+    const downLine = pieces.find((piece) => piece.pieceId === PieceId.DOWN_LION)
+    if (downLine && downLine.row === 2) {
+      if (arrivedDownUser) {
+        setTimeout(() => {
+          setWhoWin("down")
+        }, 1000)
+      } else {
+        setArrivedDownUser(true)
+      }
+    } else {
+      setArrivedDownUser(false)
     }
 
     setPieces((prevPieces) => {
@@ -183,8 +232,9 @@ function useLogic() {
         }
         break
       case 1:
-        alert("왕이 잡혔습니다.")
-        resetBoard()
+        setTimeout(() => {
+          setWhoWin("down")
+        }, 1000)
         break
       case 2:
         if (getPieceIdFromPosition(6, 1) !== IsEmpty) {
@@ -232,8 +282,9 @@ function useLogic() {
         }
         break
       case 7:
-        alert("왕이 잡혔습니다.")
-        resetBoard()
+        setTimeout(() => {
+          setWhoWin("up")
+        }, 1000)
         break
       case 8:
         if (getPieceIdFromPosition(1, 0) !== IsEmpty) {
@@ -368,6 +419,10 @@ function useLogic() {
     isCanMove,
     setIsCanMove,
     getPieceFromPosition,
+    userTeam,
+    setUserTeam,
+    resetBoard,
+    whoWin,
   }
 }
 
