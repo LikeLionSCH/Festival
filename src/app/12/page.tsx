@@ -1,19 +1,24 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import useLogic, { Piece } from "./useLogic"
-import { Snackbar, Stack } from "@mui/material"
+import useLogic from "./useLogic"
+import { Alert, Snackbar, Stack } from "@mui/material"
+import Cell, { CellSize } from "./cell"
 
 type Position = {
   row: number
   col: number
 }
-
-const cellSize = 100 // 각 셀의 크기 (가로, 세로)
-
 export default function Page() {
-  const { pieces, predictAI, movePiece, turn, isCanMove, setIsCanMove } =
-    useLogic()
+  const {
+    pieces,
+    predictAI,
+    movePiece,
+    turn,
+    isCanMove,
+    setIsCanMove,
+    getPieceFromPosition,
+  } = useLogic()
   const [startPosition, setStartPosition] = useState<Position>({
     row: -1,
     col: -1,
@@ -28,81 +33,93 @@ export default function Page() {
     }
   }, [turn, pieces])
 
-  function getKrFromPid(pid: number): string | null {
-    if (pid === 0) {
-      return "장"
-    } else if (pid === 1) {
-      return "왕"
-    } else if (pid === 2) {
-      return "상"
-    } else if (pid === 3) {
-      return "자"
-    } else if (pid === 4) {
-      return "후"
-    } else if (pid === 5) {
-      return "자"
-    } else if (pid === 6) {
-      return "상"
-    } else if (pid === 7) {
-      return "왕"
-    } else if (pid === 8) {
-      return "장"
-    } else if (pid === 9) {
-      return "후"
-    } else {
-      return null
-    }
-  }
-
   function handleCellClick(row: number, col: number) {
-    console.log("clicked", row, col)
-    if (startPosition.row === -1 && startPosition.col === -1) {
-      // 첫 번째 클릭: 시작 위치 설정
-      setStartPosition({ row, col })
-    } else {
+    if (startPosition.row !== -1 && startPosition.col !== -1) {
       // 두 번째 클릭: 이동할 위치 설정
       const { row: startRow, col: startCol } = startPosition
       movePiece(startRow, startCol, row, col)
       setStartPosition({ row: -1, col: -1 }) // 시작 위치 초기화
+      return
     }
+
+    // 첫 번째 클릭: 시작 위치 설정
+    const startPiece = getPieceFromPosition(row, col)
+    if (startPiece === null) {
+      return
+    }
+    if (startPiece.team !== turn) {
+      return
+    }
+    setStartPosition({ row, col })
   }
 
-  function Cell({ piece }: { piece: Piece }) {
-    const { row, col, pieceId } = piece
-    if (row === 0 || row === 1 || row === 6 || row === 7) {
+  // 클릭용보드랑 보여주기 보드 2개
+  function Board({ canClick }: { canClick: boolean }) {
+    return (
+      <Stack zIndex={canClick ? 10 : 0}>
+        {new Array(8).fill(0).map((_, row) => {
+          return new Array(3).fill(0).map((_, col) => {
+            let boardColor = ""
+            if (!canClick) {
+              // 클릭 할 수 있을때 색 있음 안보임
+              boardColor = "rgb(254, 251, 220)"
+            }
+            let rowIndex = row
+            if (row === 0 || row === 1) {
+              rowIndex = row - 1
+            }
+            if (row === 6 || row === 7) {
+              rowIndex = row + 1
+            }
+            if (row === 2 && !canClick) {
+              boardColor = "#ABDEEE"
+            }
+            if (row === 5 && !canClick) {
+              boardColor = "#B6CfB6"
+            }
+            return (
+              <div
+                key={`${row}-${col}`}
+                style={{
+                  position: "absolute",
+                  border: canClick ? "" : "1px dashed black",
+                  width: `${CellSize}px`,
+                  height: `${CellSize}px`,
+                  left: `${col * CellSize}px`,
+                  top: `${rowIndex * CellSize}px`,
+                  backgroundColor: boardColor,
+                }}
+                onClick={() => handleCellClick(row, col)}
+              ></div>
+            )
+          })
+        })}
+      </Stack>
+    )
+  }
+
+  function SelectedPosition() {
+    if (startPosition.row === -1 && startPosition.col === -1) {
+      return null
     }
-    const krName = getKrFromPid(pieceId)
-    if (piece) {
-      return (
-        <div
-          onClick={() => handleCellClick(row, col)}
-          key={`${piece.key}`}
-          style={{
-            position: "absolute",
-            width: `${cellSize}px`,
-            height: `${cellSize}px`,
-            backgroundColor: piece.team === "up" ? "red" : "green",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            left: `${col * cellSize}px`,
-            top: `${row * cellSize}px`,
-            transition: "all 1s linear",
-          }}
-        >
-          <img
-            style={{
-              width: `${cellSize - 10}px`,
-              height: `${cellSize - 10}px`,
-              rotate: piece.team === "up" ? "180deg" : "0deg",
-            }}
-            src={`/12/${krName}.png`}
-            alt="piece"
-          />
-        </div>
-      )
+    let row = startPosition.row
+    if (row === 0 || row === 1) {
+      row = startPosition.row - 1
     }
-    return null
+    if (row === 6 || row === 7) {
+      row = startPosition.row + 1
+    }
+    return (
+      <Stack
+        position="absolute"
+        zIndex={20}
+        width={CellSize + "px"}
+        height={CellSize + "px"}
+        left={startPosition.col * CellSize + "px"}
+        top={row * CellSize + "px"}
+        style={{ backgroundColor: "rgba(0, 0, 0, 0.3)" }}
+      ></Stack>
+    )
   }
 
   return (
@@ -120,36 +137,29 @@ export default function Page() {
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
         open={isCanMove}
         onClose={() => setIsCanMove(false)}
-        message="이동할 수 없습니다"
-      />
+      >
+        <Alert severity="error">이동할 수 없습니다</Alert>
+      </Snackbar>
       <div
         style={{
-          width: cellSize * 3 + "px",
-          height: cellSize * 8 + "px",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          width: CellSize * 3 + "px",
+          height: CellSize * 10 + "px",
         }}
       >
-        {pieces.map((piece) => {
-          return <Cell key={`${piece.key}`} piece={piece} />
-        })}
-        <Stack zIndex={10}>
-          {new Array(8).fill(0).map((_, row) => {
-            return new Array(3).fill(0).map((_, col) => {
-              return (
-                <div
-                  key={`${row}-${col}`}
-                  style={{
-                    position: "absolute",
-                    width: `${cellSize}px`,
-                    height: `${cellSize}px`,
-                    border: "1px solid black",
-                    left: `${col * cellSize}px`,
-                    top: `${row * cellSize}px`,
-                  }}
-                  onClick={() => handleCellClick(row, col)}
-                ></div>
-              )
-            })
+        <Stack
+          width={CellSize * 3 + "px"}
+          position="relative"
+          height={CellSize * 8 + "px"}
+        >
+          {pieces.map((piece) => {
+            return <Cell key={piece.key} piece={piece} />
           })}
+          <Board canClick={true} />
+          <Board canClick={false} />
+          <SelectedPosition />
         </Stack>
       </div>
     </div>

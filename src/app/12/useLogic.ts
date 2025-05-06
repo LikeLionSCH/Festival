@@ -1,7 +1,8 @@
 "use client"
 
 import axios from "axios"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
+import { atom, useAtom } from "jotai"
 
 export type Piece = {
   row: number
@@ -13,10 +14,14 @@ export type Piece = {
 
 const IsEmpty = -1
 
+const piecesAtom = atom<Piece[]>([])
+const turnAtom = atom<"up" | "down">("down")
+const isCanMoveAtom = atom(false)
+
 function useLogic() {
-  const [pieces, setPieces] = useState<Piece[]>([])
-  const [turn, setTurn] = useState<"up" | "down">("down")
-  const [isCanMove, setIsCanMove] = useState(false)
+  const [pieces, setPieces] = useAtom(piecesAtom)
+  const [turn, setTurn] = useAtom(turnAtom)
+  const [isCanMove, setIsCanMove] = useAtom(isCanMoveAtom)
 
   useEffect(() => {
     resetBoard()
@@ -40,6 +45,7 @@ function useLogic() {
 
   // AI 예측 실행
   async function predictAI() {
+    await new Promise((resolve) => setTimeout(resolve, 500)) // 1초 대기
     const boardData = new Array(10)
       .fill(0)
       .map(() => new Array(8).fill(0).map(() => new Array(3).fill(0)))
@@ -65,18 +71,7 @@ function useLogic() {
     const target_row = Math.floor(target_index / 3)
     const target_col = target_index % 3
 
-    console.log(
-      `출발: index = ${start_index}, row = ${start_row}, col = ${start_col}`
-    )
-    console.log(
-      `도착: index = ${target_index}, row = ${target_row}, col = ${target_col}`
-    )
     movePiece(start_row, start_col, target_row, target_col) // AI의 예측 이동
-
-    if (data.done) {
-      alert("게임 종료 / " + data.reward)
-      return
-    }
   }
 
   function resetBoard() {
@@ -187,6 +182,10 @@ function useLogic() {
           pushPiece(newPiece)
         }
         break
+      case 1:
+        alert("왕이 잡혔습니다.")
+        resetBoard()
+        break
       case 2:
         if (getPieceIdFromPosition(6, 1) !== IsEmpty) {
           const newPiece = createPiece(7, 1, 6, "down")
@@ -231,6 +230,10 @@ function useLogic() {
           const newPiece = createPiece(1, 1, 0, "up")
           pushPiece(newPiece)
         }
+        break
+      case 7:
+        alert("왕이 잡혔습니다.")
+        resetBoard()
         break
       case 8:
         if (getPieceIdFromPosition(1, 0) !== IsEmpty) {
@@ -300,10 +303,10 @@ function useLogic() {
 
     // 상하좌우 기물 이동
     if (piece === 0 || piece === 8) {
-      if (rowDiff > 0 && colDiff === 0) {
+      if (rowDiff == 1 && colDiff === 0) {
         return true
       }
-      if (colDiff > 0 && rowDiff === 0) {
+      if (colDiff == 1 && rowDiff === 0) {
         return true
       }
       return false
@@ -357,7 +360,15 @@ function useLogic() {
     return true
   }
 
-  return { pieces, predictAI, movePiece, turn, isCanMove, setIsCanMove }
+  return {
+    pieces,
+    predictAI,
+    movePiece,
+    turn,
+    isCanMove,
+    setIsCanMove,
+    getPieceFromPosition,
+  }
 }
 
 export default useLogic

@@ -1,0 +1,9 @@
+.cell {
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  left: 0px;
+  top: 0px;
+  transition: all 0.5s ease;
+  z-index: 5;
+}
