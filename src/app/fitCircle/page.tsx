@@ -21,7 +21,7 @@ export default function FitCircle() {
   }, [])
 
   useEffect(() => {
-    if (gameOver) return
+    if (!!gameOver) return
     resetCircle()
   }, [gameOver])
 
@@ -79,6 +79,7 @@ export default function FitCircle() {
     if (step > 5) {
       setGameOver(true)
       setIsWin(true)
+      setStep(step)
       return
     }
     setStep(step)

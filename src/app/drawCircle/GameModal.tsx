@@ -18,6 +18,7 @@ export default function GameModal({
 }) {
   const [rank, setRank] = useState(0)
   useEffect(() => {
+    setRank(0)
     if (!open) return
     getRank()
   }, [open])
@@ -27,8 +28,12 @@ export default function GameModal({
       level: step,
       distance: distance,
     })
-    console.log(data.rank)
-    setRank(data.rank)
+    const targetNumber = data.rank
+    for (let index = 0; index < targetNumber; index += targetNumber / 30) {
+      setTimeout(() => {
+        setRank(Number.parseFloat(index.toFixed(2)))
+      }, 20 * index)
+    }
   }
   return (
     <Modal
@@ -41,6 +46,10 @@ export default function GameModal({
         height="100vh"
         alignItems="center"
         justifyContent="center"
+        onClick={(e) => {
+          e.stopPropagation()
+          e.preventDefault()
+        }}
       >
         <Stack
           bgcolor="white"
@@ -54,7 +63,7 @@ export default function GameModal({
           <Stack fontSize="30px" fontWeight="bold">
             {isWin ? "모두 성공!" : "원 맞추기 실패!"}
           </Stack>
-          <Stack fontSize="20px" fontWeight="500">
+          <Stack textAlign="center" fontSize="20px" fontWeight="500">
             상위 {rank}%
             <br />두 원의 거리는 {distance.toFixed(2)} 입니다.
           </Stack>

@@ -16,7 +16,7 @@ export default function DrawCircle() {
   const [canvasSize, setCanvasSize] = useState(1000)
   const [leftTime, setLeftTime] = useState("03:00")
   const [score, setScore] = useState(-1)
-  const [rank, setRank] = useState(-1)
+  const [rank, setRank] = useState(0)
 
   useEffect(() => {
     const windowSize = global.window.innerHeight
@@ -128,9 +128,23 @@ export default function DrawCircle() {
           point: score,
         }
       )
-      setRank(data.rank)
+      const targetRank = data.rank
+      for (
+        let index = 0;
+        index < targetRank && targetRank > 0;
+        index += targetRank / 30
+      ) {
+        setTimeout(() => {
+          setRank(Number.parseFloat(index.toFixed(2)))
+        }, 20 * index)
+      }
 
-      setScore(score)
+      const targetScore = score
+      for (let index = 0; index < targetScore; index += 1) {
+        setTimeout(() => {
+          setScore(index)
+        }, 20 * index)
+      }
     }
 
     const getCanvasCoordinates = (
