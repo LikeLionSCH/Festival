@@ -76,7 +76,7 @@ function useLogic() {
       boardData[pieceId][row][col] = 1
     })
 
-    const { data } = await axios.post("http://home.iubns.net:8000/predict", {
+    const { data } = await axios.post("http://localhost:8000/predict", {
       board: boardData,
       turn: turn === "up" ? 0 : 1,
     })
@@ -150,16 +150,16 @@ function useLogic() {
     piece.row = targetRow
     piece.col = targetCol
 
-    if (piece.pieceId === 3 && targetRow === 5) {
-      piece.pieceId = 4
-    } else if (piece.pieceId === 5 && targetRow === 2) {
-      piece.pieceId = 9
+    if (piece.pieceId === PieceId.UP_CHICK && targetRow === 5) {
+      piece.pieceId = PieceId.UP_CHICKEN
+    } else if (piece.pieceId === PieceId.DOWN_CHICK && targetRow === 2) {
+      piece.pieceId = PieceId.DOWN_CHICKEN
     }
 
     // 싱대 진영에 왕이 들어갔다면
     const upLine = pieces.find((piece) => piece.pieceId === PieceId.UP_LION)
     if (upLine && upLine.row === 5) {
-      if (arrivedUpUser) {
+      if (arrivedUpUser && targetPieceId !== PieceId.UP_LION) {
         setTimeout(() => {
           setWhoWin("up")
         }, 1000)
@@ -171,7 +171,7 @@ function useLogic() {
     }
     const downLine = pieces.find((piece) => piece.pieceId === PieceId.DOWN_LION)
     if (downLine && downLine.row === 2) {
-      if (arrivedDownUser) {
+      if (arrivedDownUser && targetPieceId !== PieceId.DOWN_LION) {
         setTimeout(() => {
           setWhoWin("down")
         }, 1000)
@@ -222,85 +222,85 @@ function useLogic() {
 
   function catchPiece(targetPiece: Piece) {
     switch (targetPiece.pieceId) {
-      case 0:
+      case PieceId.UP_GIRAFFE:
         if (getPieceIdFromPosition(6, 2) !== IsEmpty) {
-          const newPiece = createPiece(7, 2, 8, "down")
+          const newPiece = createPiece(7, 2, PieceId.DOWN_GIRAFFE, "down")
           pushPiece(newPiece)
         } else {
-          const newPiece = createPiece(6, 2, 8, "down")
+          const newPiece = createPiece(6, 2, PieceId.DOWN_GIRAFFE, "down")
           pushPiece(newPiece)
         }
         break
-      case 1:
+      case PieceId.UP_LION:
         setTimeout(() => {
           setWhoWin("down")
         }, 1000)
         break
-      case 2:
+      case PieceId.UP_ELEPHANT:
         if (getPieceIdFromPosition(6, 1) !== IsEmpty) {
-          const newPiece = createPiece(7, 1, 6, "down")
+          const newPiece = createPiece(7, 1, PieceId.DOWN_ELEPHANT, "down")
           pushPiece(newPiece)
         } else {
-          const newPiece = createPiece(6, 1, 6, "down")
+          const newPiece = createPiece(6, 1, PieceId.DOWN_ELEPHANT, "down")
           pushPiece(newPiece)
         }
         break
-      case 3:
+      case PieceId.UP_CHICK:
         if (getPieceIdFromPosition(6, 0) !== IsEmpty) {
-          const newPiece = createPiece(7, 0, 5, "down")
+          const newPiece = createPiece(7, 0, PieceId.DOWN_CHICK, "down")
           pushPiece(newPiece)
         } else {
-          const newPiece = createPiece(6, 0, 5, "down")
+          const newPiece = createPiece(6, 0, PieceId.DOWN_CHICK, "down")
           pushPiece(newPiece)
         }
         break
-      case 4:
+      case PieceId.UP_CHICKEN:
         if (getPieceIdFromPosition(6, 0) !== IsEmpty) {
-          const newPiece = createPiece(7, 0, 5, "down")
+          const newPiece = createPiece(7, 0, PieceId.DOWN_CHICK, "down")
           pushPiece(newPiece)
         } else {
-          const newPiece = createPiece(6, 0, 5, "down")
+          const newPiece = createPiece(6, 0, PieceId.DOWN_CHICK, "down")
           pushPiece(newPiece)
         }
         break
-      case 5:
+      case PieceId.DOWN_CHICK:
         if (getPieceIdFromPosition(1, 2) !== IsEmpty) {
-          const newPiece = createPiece(0, 2, 3, "up")
+          const newPiece = createPiece(0, 2, PieceId.UP_CHICK, "up")
           pushPiece(newPiece)
         } else {
-          const newPiece = createPiece(1, 2, 3, "up")
+          const newPiece = createPiece(1, 2, PieceId.UP_CHICK, "up")
           pushPiece(newPiece)
         }
         break
-      case 6:
+      case PieceId.DOWN_ELEPHANT:
         if (getPieceIdFromPosition(1, 1) !== IsEmpty) {
-          const newPiece = createPiece(0, 1, 0, "up")
+          const newPiece = createPiece(0, 1, PieceId.UP_ELEPHANT, "up")
           pushPiece(newPiece)
         } else {
-          const newPiece = createPiece(1, 1, 0, "up")
+          const newPiece = createPiece(1, 1, PieceId.UP_ELEPHANT, "up")
           pushPiece(newPiece)
         }
         break
-      case 7:
+      case PieceId.DOWN_LION:
         setTimeout(() => {
           setWhoWin("up")
         }, 1000)
         break
-      case 8:
+      case PieceId.DOWN_GIRAFFE:
         if (getPieceIdFromPosition(1, 0) !== IsEmpty) {
-          const newPiece = createPiece(0, 0, 2, "up")
+          const newPiece = createPiece(0, 0, PieceId.UP_GIRAFFE, "up")
           pushPiece(newPiece)
         } else {
-          const newPiece = createPiece(1, 0, 2, "up")
+          const newPiece = createPiece(1, 0, PieceId.UP_GIRAFFE, "up")
           pushPiece(newPiece)
         }
         break
-      case 9:
+      case PieceId.DOWN_CHICKEN:
         if (getPieceIdFromPosition(1, 2) !== IsEmpty) {
-          const newPiece = createPiece(0, 2, 3, "up")
+          const newPiece = createPiece(0, 2, PieceId.UP_CHICK, "up")
           pushPiece(newPiece)
         } else {
-          const newPiece = createPiece(1, 2, 3, "up")
+          const newPiece = createPiece(1, 2, PieceId.UP_CHICK, "up")
           pushPiece(newPiece)
         }
         break
