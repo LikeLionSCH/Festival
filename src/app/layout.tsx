@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "멋쟁이 사자처럼 축제 사이트",
-  description: "멋쟁이 사자처럼 축제 사이트",
+  title: "멋쟁이사자처럼 축제 사이트",
+  description: "멋쟁이사자처럼 축제 사이트",
 }
 
 export default function RootLayout({

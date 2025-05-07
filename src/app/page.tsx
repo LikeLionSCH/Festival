@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <div className={styles.page}>
       <div className={styles.container}>
-        <h1 className={styles.title}>멋쟁이 사자처럼</h1>
+        <h1 className={styles.title}>멋쟁이사자처럼</h1>
         <div style={{ height: "40px" }} />
         <p className={styles.description}>아래애서 게임을 선택해주세요</p>
         <Stack gap="24px">
