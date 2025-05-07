@@ -6,6 +6,7 @@ import { Alert, Snackbar, Stack } from "@mui/material"
 import Cell, { CellSize } from "./cell"
 import GameModal from "./GameModal"
 import SelectGameMode from "./SelectGameMode"
+import styles from "./page.module.css"
 
 type Position = {
   row: number
@@ -87,9 +88,20 @@ export default function Page() {
             if (row === 5 && !canClick) {
               boardColor = "#B6CfB6"
             }
+            let isTurn = false
+            if (turn === "up" && rowIndex <= 1) {
+              isTurn = true
+            }
+            if (turn === "down" && rowIndex >= 7) {
+              isTurn = true
+            }
+            if (canClick) {
+              isTurn = false
+            }
             return (
               <div
                 key={`${row}-${col}`}
+                className={isTurn ? styles.turn : ""}
                 style={{
                   position: "absolute",
                   border: canClick ? "" : "1px dashed black",

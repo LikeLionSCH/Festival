@@ -7,3 +7,22 @@
   transition: all 0.5s ease;
   z-index: 5;
 }
+
+.turn {
+  animation-name: turn-animation;
+  animation-duration: 0.6s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-timing-function: linear;
+  animation-fill-mode: none;
+  animation-fill-mode: forwards;
+}
+
+@keyframes turn-animation {
+  from {
+    opacity: 1;
+  }
+  to {
+    background-color: #f5bcbc;
+  }
+}
