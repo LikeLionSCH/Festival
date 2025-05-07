@@ -163,6 +163,10 @@ export default function Page() {
           width={CellSize * 3 + "px"}
           position="relative"
           height={CellSize * 8 + "px"}
+          style={{
+            rotate: userTeam === "up" ? "180deg" : "0deg",
+            transition: "1s",
+          }}
         >
           {pieces.map((piece) => {
             return <Cell key={piece.key} piece={piece} />
@@ -176,7 +180,7 @@ export default function Page() {
           {gameMode}
         </Stack>
       </div>
-      <GameModal />
+      <GameModal gameMode={gameMode} />
     </div>
   )
 }

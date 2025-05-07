@@ -3,7 +3,11 @@ import { Button, Modal, Stack } from "@mui/material"
 import { useEffect, useState } from "react"
 import useLogic from "./useLogic"
 
-export default function GameModal() {
+export default function GameModal({
+  gameMode,
+}: {
+  gameMode: "AI" | "User" | false
+}) {
   const { resetBoard, whoWin, userTeam } = useLogic()
   const [open, setOpen] = useState(false)
 
@@ -44,7 +48,9 @@ export default function GameModal() {
             {whoWin === userTeam ? (
               <div>당신이 이겼습니다!</div>
             ) : (
-              <div>인공지능이 이겼습니다!</div>
+              <div>
+                {gameMode === "User" ? "운영진" : "인공지능"}이 이겼습니다!
+              </div>
             )}
           </Stack>
           <Button>

@@ -26,6 +26,7 @@ enum PieceId {
 }
 
 const IsEmpty = -1
+const AiDelay = 1000
 
 const piecesAtom = atom<Piece[]>([])
 const turnAtom = atom<"up" | "down">("down")
@@ -66,7 +67,7 @@ function useLogic() {
 
   // AI 예측 실행
   async function predictAI() {
-    await new Promise((resolve) => setTimeout(resolve, 500)) // 1초 대기
+    await new Promise((resolve) => setTimeout(resolve, AiDelay))
     const boardData = new Array(10)
       .fill(0)
       .map(() => new Array(8).fill(0).map(() => new Array(3).fill(0)))
@@ -162,7 +163,7 @@ function useLogic() {
       if (arrivedUpUser && targetPieceId !== PieceId.UP_LION) {
         setTimeout(() => {
           setWhoWin("up")
-        }, 1000)
+        }, AiDelay)
       } else {
         setArrivedUpUser(true)
       }
@@ -174,7 +175,7 @@ function useLogic() {
       if (arrivedDownUser && targetPieceId !== PieceId.DOWN_LION) {
         setTimeout(() => {
           setWhoWin("down")
-        }, 1000)
+        }, AiDelay)
       } else {
         setArrivedDownUser(true)
       }
@@ -234,7 +235,7 @@ function useLogic() {
       case PieceId.UP_LION:
         setTimeout(() => {
           setWhoWin("down")
-        }, 1000)
+        }, AiDelay)
         break
       case PieceId.UP_ELEPHANT:
         if (getPieceIdFromPosition(6, 1) !== IsEmpty) {
@@ -284,7 +285,7 @@ function useLogic() {
       case PieceId.DOWN_LION:
         setTimeout(() => {
           setWhoWin("up")
-        }, 1000)
+        }, AiDelay)
         break
       case PieceId.DOWN_GIRAFFE:
         if (getPieceIdFromPosition(1, 0) !== IsEmpty) {

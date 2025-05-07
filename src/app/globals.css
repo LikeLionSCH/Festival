@@ -14,6 +14,5 @@ body {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
-  transition: all 1.3s ease;
-  animation: all 1.3s ease;
+  transition: all 1.5s ease;
 }
