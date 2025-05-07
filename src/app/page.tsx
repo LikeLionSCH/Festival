@@ -22,7 +22,9 @@ export default function Home() {
           >
             한글 게임
           </Button>
-          <Button variant="outlined">물 채우기</Button>
+          <Button onClick={() => push("/fitCircle")} variant="outlined">
+            원 맞추기
+          </Button>
         </Stack>
       </div>
     </div>
