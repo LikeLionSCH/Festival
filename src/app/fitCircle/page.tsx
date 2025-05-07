@@ -6,18 +6,24 @@ import confetti from "canvas-confetti"
 import GameModal from "../drawCircle/GameModal"
 
 export default function FitCircle() {
+  const [step, setStep] = useState(1)
+  const [isWin, setIsWin] = useState(false)
+  const [position, setPosition] = useState("98")
   const [targetSize, setTargetSize] = useState(0)
   const [circleSize, setCircleSize] = useState(0)
-  const [position, setPosition] = useState("98")
-  const [movingStartTime, setMovingStartTime] = useState<Date | null>(null)
   const [isMoving, setIsMoving] = useState(false)
-  const [step, setStep] = useState(1)
   const [gameOver, setGameOver] = useState(false)
-  const [isWin, setIsWin] = useState(false)
+  const [movingStartTime, setMovingStartTime] = useState<Date | null>(null)
+  const [diff, setDiff] = useState(0)
 
   useEffect(() => {
     resetCircle()
   }, [])
+
+  useEffect(() => {
+    if (gameOver) return
+    resetCircle()
+  }, [gameOver])
 
   function moveCircle() {
     setPosition("0")
@@ -40,6 +46,7 @@ export default function FitCircle() {
     const circleCenter =
       (global.window.innerWidth * newPosition) / 100 - circleSize / 2
 
+    setDiff(Math.abs(targetCircleCenter - circleCenter))
     if (
       targetCircleCenter + targetSize / 2 >= circleCenter + circleSize / 2 &&
       targetCircleCenter - targetSize / 2 <= circleCenter - circleSize / 2
@@ -55,11 +62,6 @@ export default function FitCircle() {
       }, 2000)
     }
   }
-
-  useEffect(() => {
-    if (gameOver) return
-    resetCircle()
-  }, [gameOver])
 
   function resetCircle() {
     if (!global || !global.window) return
@@ -173,7 +175,13 @@ export default function FitCircle() {
         position="absolute"
         left={`calc(${position}vw - ${circleSize}px)`}
       />
-      <GameModal open={gameOver} setOpen={setGameOver} isWin={isWin} />
+      <GameModal
+        open={gameOver}
+        setOpen={setGameOver}
+        step={step}
+        distance={diff}
+        isWin={isWin}
+      />
     </Stack>
   )
 }

@@ -1,8 +1,10 @@
 "use client"
 
-import { Stack } from "@mui/material"
+import { Button, Stack } from "@mui/material"
 import { useEffect, useRef, useState } from "react"
 import dayjs from "dayjs"
+import axios from "axios"
+import styles from "./page.module.css"
 
 let startPixels = 0
 let startTime: Date | null = null
@@ -14,6 +16,7 @@ export default function DrawCircle() {
   const [canvasSize, setCanvasSize] = useState(1000)
   const [leftTime, setLeftTime] = useState("03:00")
   const [score, setScore] = useState(-1)
+  const [rank, setRank] = useState(-1)
 
   useEffect(() => {
     const windowSize = global.window.innerHeight
@@ -49,7 +52,6 @@ export default function DrawCircle() {
       ctx.moveTo(x, y)
       const callBack = () => {
         let diff = 3 * 1000 - dayjs().diff(dayjs(startTime), "millisecond")
-        console.log(diff)
         if (diff < 0) {
           diff = 0
         }
@@ -114,12 +116,21 @@ export default function DrawCircle() {
     setTimeout(() => {
       startPixels = getWhitePixelCount()
     }, 500)
-    const stopDrawing = () => {
+    const stopDrawing = async () => {
       if (isStopped) return
       isStopped = true
       ctx.closePath()
       const percentage = Math.round((getWhitePixelCount() / startPixels) * 100)
-      setScore(100 - percentage)
+      const score = 100 - percentage
+      const { data } = await axios.post(
+        "http://iubns.net:7000/game/draw-circle",
+        {
+          point: score,
+        }
+      )
+      setRank(data.rank)
+
+      setScore(score)
     }
 
     const getCanvasCoordinates = (
@@ -162,6 +173,10 @@ export default function DrawCircle() {
     }
   }, [canvasSize])
 
+  function reset() {
+    global.window.location.reload()
+  }
+
   return (
     <Stack
       width="100vw"
@@ -184,18 +199,46 @@ export default function DrawCircle() {
       </Stack>
       {score !== -1 && (
         <Stack
+          top="30vh"
+          zIndex="100"
           color="white"
           fontSize="3rem"
-          zIndex="100"
+          textAlign="center"
           position="absolute"
-          top="30vh"
+          className={styles["score-area"]}
         >
           점수: {score}
+          <Stack>상위 {rank}%</Stack>
         </Stack>
       )}
       <Stack>
         <canvas ref={canvasRef} width={canvasSize} height={canvasSize}></canvas>
       </Stack>
+      {isStopped && (
+        <Button
+          onClick={() => {}}
+          style={{
+            position: "absolute",
+            bottom: "10vh",
+            zIndex: 100,
+          }}
+        >
+          <Stack
+            bgcolor="rgb(55, 108, 185)"
+            color="white"
+            borderRadius="30px"
+            width="200px"
+            height="50px"
+            alignItems="center"
+            justifyContent="center"
+            fontSize="20px"
+            className={styles["score-area"]}
+            onClick={reset}
+          >
+            다시 하기
+          </Stack>
+        </Button>
+      )}
     </Stack>
   )
 }
