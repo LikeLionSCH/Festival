@@ -76,7 +76,7 @@ function useLogic() {
       boardData[pieceId][row][col] = 1
     })
 
-    const { data } = await axios.post("http://localhost:8000/predict", {
+    const { data } = await axios.post("http://home.iubns.net:8000/predict", {
       board: boardData,
       turn: turn === "up" ? 0 : 1,
     })

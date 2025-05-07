@@ -5,6 +5,7 @@ import useLogic from "./useLogic"
 import { Alert, Snackbar, Stack } from "@mui/material"
 import Cell, { CellSize } from "./cell"
 import GameModal from "./GameModal"
+import SelectGameMode from "./SelectGameMode"
 
 type Position = {
   row: number
@@ -21,6 +22,9 @@ export default function Page() {
     getPieceFromPosition,
     userTeam,
   } = useLogic()
+
+  const [gameMode, setGameMode] = useState<"AI" | "User" | false>(false)
+
   const [startPosition, setStartPosition] = useState<Position>({
     row: -1,
     col: -1,
@@ -30,12 +34,16 @@ export default function Page() {
     if (pieces.length === 0) {
       return
     }
-    if (turn !== userTeam) {
+    if (turn !== userTeam && gameMode === "AI") {
       predictAI()
     }
-  }, [turn, pieces])
+  }, [turn, pieces, gameMode])
 
   function handleCellClick(row: number, col: number) {
+    if (gameMode === "AI" && turn !== userTeam) {
+      // AI 턴일 때는 클릭 무시
+      return
+    }
     if (startPosition.row !== -1 && startPosition.col !== -1) {
       // 두 번째 클릭: 이동할 위치 설정
       const { row: startRow, col: startCol } = startPosition
@@ -162,6 +170,10 @@ export default function Page() {
           <Board canClick={true} />
           <Board canClick={false} />
           <SelectedPosition />
+          {!gameMode && (
+            <SelectGameMode gameMode={gameMode} setGameMode={setGameMode} />
+          )}
+          {gameMode}
         </Stack>
       </div>
       <GameModal />
