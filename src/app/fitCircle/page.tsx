@@ -43,6 +43,11 @@ export default function FitCircle() {
         resetCircle()
         changeStep(step + 1)
       }, 1000)
+    } else {
+      alert("실패 ㅠㅠ")
+      setTimeout(() => {
+        resetCircle()
+      }, 1000)
     }
   }
 
@@ -127,6 +132,9 @@ export default function FitCircle() {
       alignItems="center"
       onTouchStart={touchScreen}
     >
+      <Stack position="absolute" top="10vh" fontSize="40px" fontWeight="bold">
+        {step}단계
+      </Stack>
       <Stack
         borderRadius={targetSize / 2 + "px"}
         border="4px solid black"

@@ -25,6 +25,9 @@ export default function Home() {
           <Button onClick={() => push("/fitCircle")} variant="outlined">
             원 맞추기
           </Button>
+          <Button onClick={() => push("/drawCircle")} variant="outlined">
+            원 그리기
+          </Button>
         </Stack>
       </div>
     </div>
