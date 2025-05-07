@@ -1,17 +1,23 @@
 "use client"
 
 import { Stack } from "@mui/material"
-import { useState } from "react"
-import styles from "./page.module.css"
+import { useEffect, useState } from "react"
 import confetti from "canvas-confetti"
+import GameModal from "../drawCircle/GameModal"
 
 export default function FitCircle() {
-  const [targetSize, setTargetSize] = useState(400)
-  const [circleSize, setCircleSize] = useState(100)
+  const [targetSize, setTargetSize] = useState(0)
+  const [circleSize, setCircleSize] = useState(0)
   const [position, setPosition] = useState("98")
   const [movingStartTime, setMovingStartTime] = useState<Date | null>(null)
   const [isMoving, setIsMoving] = useState(false)
   const [step, setStep] = useState(1)
+  const [gameOver, setGameOver] = useState(false)
+  const [isWin, setIsWin] = useState(false)
+
+  useEffect(() => {
+    resetCircle()
+  }, [])
 
   function moveCircle() {
     setPosition("0")
@@ -25,7 +31,7 @@ export default function FitCircle() {
     setIsMoving(false)
     const movingEndTime = new Date()
     const movingTime = movingEndTime.getTime() - movingStartTime.getTime()
-    const movingDistance = (movingTime / 10) * -1 + circleSize
+    const movingDistance = 100 - movingTime / 10
     const newPosition = parseFloat(position) + movingDistance
 
     setPosition(newPosition.toString())
@@ -44,38 +50,51 @@ export default function FitCircle() {
         changeStep(step + 1)
       }, 1000)
     } else {
-      alert("실패 ㅠㅠ")
       setTimeout(() => {
-        resetCircle()
-      }, 1000)
+        setGameOver(true)
+      }, 2000)
     }
   }
 
+  useEffect(() => {
+    if (gameOver) return
+    resetCircle()
+  }, [gameOver])
+
   function resetCircle() {
-    setTargetSize(400)
-    setCircleSize(100)
+    if (!global || !global.window) return
+    const windowSize = global.window.innerWidth
+    setCircleSize(windowSize * 0.1)
+    setTargetSize(windowSize * 0.4)
     setPosition("98")
     setMovingStartTime(null)
     setIsMoving(false)
     setStep(1)
+    setIsWin(false)
   }
 
   function changeStep(step: number) {
+    if (step > 5) {
+      setGameOver(true)
+      setIsWin(true)
+      return
+    }
     setStep(step)
+    const windowSize = global.window.innerWidth
     switch (step) {
       case 1:
-        setTargetSize(400)
+        setTargetSize(windowSize * 0.4)
       case 2:
-        setTargetSize(300)
+        setTargetSize(windowSize * 0.3)
         break
       case 3:
-        setTargetSize(200)
+        setTargetSize(windowSize * 0.2)
         break
       case 4:
-        setTargetSize(150)
+        setTargetSize(windowSize * 0.15)
         break
       case 5:
-        setTargetSize(120)
+        setTargetSize(windowSize * 0.12)
         break
       default:
         break
@@ -132,7 +151,7 @@ export default function FitCircle() {
       alignItems="center"
       onTouchStart={touchScreen}
     >
-      <Stack position="absolute" top="10vh" fontSize="40px" fontWeight="bold">
+      <Stack position="absolute" top="10vh" fontSize="5vh" fontWeight="bold">
         {step}단계
       </Stack>
       <Stack
@@ -153,10 +172,8 @@ export default function FitCircle() {
         height={circleSize + "px"}
         position="absolute"
         left={`calc(${position}vw - ${circleSize}px)`}
-      />{" "}
-      {Array.from({ length: 5 }).map((_, index) => (
-        <div key={index} className={styles.firework}></div>
-      ))}
+      />
+      <GameModal open={gameOver} setOpen={setGameOver} isWin={isWin} />
     </Stack>
   )
 }

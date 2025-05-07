@@ -1,10 +1,24 @@
 "use client"
 
 import { Stack } from "@mui/material"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
+import dayjs from "dayjs"
+
+let startPixels = 0
+let startTime: Date | null = null
+let isDrawing = false
+let isStopped = false
 
 export default function DrawCircle() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const [canvasSize, setCanvasSize] = useState(1000)
+  const [leftTime, setLeftTime] = useState("03:00")
+  const [score, setScore] = useState(-1)
+
+  useEffect(() => {
+    const windowSize = global.window.innerHeight
+    setCanvasSize(windowSize)
+  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -15,32 +29,97 @@ export default function DrawCircle() {
 
     // 기본 비어 있는 하얀 원 그리기
     ctx.strokeStyle = "white"
-    ctx.lineWidth = 2
+    ctx.lineWidth = 4
     ctx.beginPath()
-    ctx.arc(canvas.width / 2, canvas.height / 2, 50, 0, Math.PI * 2)
+    ctx.arc(
+      canvas.width / 2,
+      canvas.height / 1.5,
+      canvasSize / 5,
+      0,
+      Math.PI * 2
+    )
     ctx.stroke()
 
-    let isDrawing = false
-
     const startDrawing = (event: MouseEvent | TouchEvent) => {
+      if (isStopped) return
       isDrawing = true
       const { x, y } = getCanvasCoordinates(event, canvas)
       ctx.beginPath()
+      startTime = new Date()
       ctx.moveTo(x, y)
+      const callBack = () => {
+        let diff = 3 * 1000 - dayjs().diff(dayjs(startTime), "millisecond")
+        console.log(diff)
+        if (diff < 0) {
+          diff = 0
+        }
+        const milliseconds = Math.floor((diff % 1000) / 10)
+        const seconds = Math.floor(diff / 1000)
+        setLeftTime(
+          `${String(seconds).padStart(2, "0")}:${String(milliseconds).padStart(
+            2,
+            "0"
+          )}`
+        )
+
+        if (diff <= 0) {
+          stopDrawing()
+          stopInterval()
+        }
+      }
+      const setIntervalId = setInterval(callBack, 10)
+      function stopInterval() {
+        clearInterval(setIntervalId)
+      }
     }
 
     const draw = (event: MouseEvent | TouchEvent) => {
       if (!isDrawing) return
+      if (isStopped) return
       const { x, y } = getCanvasCoordinates(event, canvas)
+
+      // 그라데이션 생성
+      const gradient = ctx.createLinearGradient(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      )
+      gradient.addColorStop(0, "red")
+      gradient.addColorStop(0.5, "blue")
+      gradient.addColorStop(1, "green")
+
       ctx.lineTo(x, y)
-      ctx.strokeStyle = "white"
-      ctx.lineWidth = 2
+      ctx.strokeStyle = gradient // 그라데이션 적용
+      ctx.lineWidth = 10
       ctx.stroke()
     }
 
+    const getWhitePixelCount = () => {
+      if (!canvas || !ctx) return 0
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+      const data = imageData.data
+      let whitePixelCount = 0
+
+      for (let i = 0; i < data.length; i += 4) {
+        const [r, g, b, a] = [data[i], data[i + 1], data[i + 2], data[i + 3]]
+        if (r === 255 && g === 255 && b === 255 && a === 255) {
+          whitePixelCount++
+        }
+      }
+
+      return whitePixelCount
+    }
+
+    setTimeout(() => {
+      startPixels = getWhitePixelCount()
+    }, 500)
     const stopDrawing = () => {
-      isDrawing = false
+      if (isStopped) return
+      isStopped = true
       ctx.closePath()
+      const percentage = Math.round((getWhitePixelCount() / startPixels) * 100)
+      setScore(100 - percentage)
     }
 
     const getCanvasCoordinates = (
@@ -57,27 +136,6 @@ export default function DrawCircle() {
         y: clientY - rect.top,
       }
     }
-
-    // 하얀 픽셀 개수 계산 함수
-    const getWhitePixelCount = () => {
-      if (!canvas || !ctx) return 0
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-      const data = imageData.data
-      let whitePixelCount = 0
-
-      for (let i = 0; i < data.length; i += 4) {
-        const [r, g, b, a] = [data[i], data[i + 1], data[i + 2], data[i + 3]]
-        if (r === 255 && g === 255 && b === 255 && a === 255) {
-          whitePixelCount++
-        }
-      }
-
-      console.log(`White Pixel Count: ${whitePixelCount}`)
-      return whitePixelCount
-    }
-    setTimeout(() => {
-      getWhitePixelCount()
-    }, 1000)
 
     // 이벤트 리스너 등록
     canvas.addEventListener("mousedown", startDrawing)
@@ -102,7 +160,7 @@ export default function DrawCircle() {
       canvas.removeEventListener("touchend", stopDrawing)
       canvas.removeEventListener("touchcancel", stopDrawing)
     }
-  }, [])
+  }, [canvasSize])
 
   return (
     <Stack
@@ -110,23 +168,34 @@ export default function DrawCircle() {
       height="100vh"
       justifyContent="center"
       alignItems="center"
-      bgcolor="black"
+      bgcolor="#0E0F27"
+      style={{
+        touchAction: "none",
+      }}
     >
-      <canvas ref={canvasRef}></canvas>
-      <button
-        style={{
-          position: "absolute",
-          bottom: "20px",
-          padding: "10px 20px",
-          backgroundColor: "white",
-          color: "black",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-        }}
+      <Stack
+        color="white"
+        fontSize="5rem"
+        zIndex="100"
+        position="absolute"
+        top="10vh"
       >
-        Count White Pixels
-      </button>
+        {leftTime}
+      </Stack>
+      {score !== -1 && (
+        <Stack
+          color="white"
+          fontSize="3rem"
+          zIndex="100"
+          position="absolute"
+          top="30vh"
+        >
+          점수: {score}
+        </Stack>
+      )}
+      <Stack>
+        <canvas ref={canvasRef} width={canvasSize} height={canvasSize}></canvas>
+      </Stack>
     </Stack>
   )
 }
