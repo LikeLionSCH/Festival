@@ -48,15 +48,15 @@ function getKrFromPid(pid: number): string | null {
   } else if (pid === 4) {
     return "hu"
   } else if (pid === 5) {
-    return "ja"
+    return "enemy_ja"
   } else if (pid === 6) {
-    return "sang"
+    return "enemy_sang"
   } else if (pid === 7) {
-    return "king"
+    return "enemy_king"
   } else if (pid === 8) {
-    return "jang"
+    return "enemy_jang"
   } else if (pid === 9) {
-    return "hu"
+    return "enemy_hu"
   } else {
     return null
   }

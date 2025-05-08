@@ -354,7 +354,7 @@ function useLogic() {
     const colDiff = Math.abs(targetCol - startCol)
 
     // 상하좌우 기물 이동
-    if (piece === 0 || piece === 8) {
+    if (piece === PieceId.UP_GIRAFFE || piece === PieceId.DOWN_GIRAFFE) {
       if (rowDiff == 1 && colDiff === 0) {
         return true
       }
@@ -364,7 +364,7 @@ function useLogic() {
       return false
     }
     // 대각선 기물 이동
-    if (piece === 2 || piece === 6) {
+    if (piece === PieceId.UP_ELEPHANT || piece === PieceId.DOWN_ELEPHANT) {
       if (rowDiff === 1 && colDiff === 1) {
         return true
       }
@@ -378,14 +378,14 @@ function useLogic() {
       return false
     }
     // 자 기물 이동
-    if (piece === 3) {
-      return rowDiff === 1 && startRow < targetRow
+    if (piece === PieceId.UP_CHICK) {
+      return rowDiff === 1 && startRow < targetRow && colDiff === 0
     }
-    if (piece === 5) {
-      return rowDiff === 1 && startRow > targetRow
+    if (piece === PieceId.DOWN_CHICK) {
+      return rowDiff === 1 && startRow > targetRow && colDiff === 0
     }
     // 후 기물 이동
-    if (piece === 4) {
+    if (piece === PieceId.UP_CHICKEN) {
       if (rowDiff === 1 && colDiff === 0) {
         return true
       }
@@ -397,7 +397,7 @@ function useLogic() {
       }
       return false
     }
-    if (piece === 9) {
+    if (piece === PieceId.DOWN_CHICKEN) {
       if (rowDiff === 1 && colDiff === 0) {
         return true
       }
