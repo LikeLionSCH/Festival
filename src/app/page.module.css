@@ -8,6 +8,10 @@
   background-color: #f0f0f0;
 }
 
+.title {
+  text-align: center;
+}
+
 .container {
   max-width: 800px;
   padding: 20px;
@@ -15,4 +19,8 @@
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   gap: 20px;
+}
+
+.description {
+  margin: 20px;
 }
