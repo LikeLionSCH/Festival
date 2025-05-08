@@ -26,6 +26,7 @@ export default function FitCircle() {
   }, [gameOver])
 
   function moveCircle() {
+    if (movingStartTime) return
     setPosition("0")
     setMovingStartTime(new Date())
     setIsMoving(true)
@@ -34,9 +35,13 @@ export default function FitCircle() {
   function stopCircle() {
     if (!movingStartTime) return
     if (!isMoving) return
-    setIsMoving(false)
     const movingEndTime = new Date()
     const movingTime = movingEndTime.getTime() - movingStartTime.getTime()
+    // 너무 짧은 시간에 클릭하면 무시
+    if (movingTime < 100) {
+      return
+    }
+    setIsMoving(false)
     const movingDistance = 100 - movingTime / 10
     const newPosition = parseFloat(position) + movingDistance
 
@@ -152,6 +157,7 @@ export default function FitCircle() {
       height="100vh"
       justifyContent="center"
       alignItems="center"
+      onMouseDown={touchScreen}
       onTouchStart={touchScreen}
     >
       <Stack position="absolute" top="10vh" fontSize="5vh" fontWeight="bold">
