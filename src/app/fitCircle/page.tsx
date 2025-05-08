@@ -38,7 +38,7 @@ export default function FitCircle() {
     const movingEndTime = new Date()
     const movingTime = movingEndTime.getTime() - movingStartTime.getTime()
     // 너무 짧은 시간에 클릭하면 무시
-    if (movingTime < 100) {
+    if (movingTime < 200) {
       return
     }
     setIsMoving(false)
@@ -51,7 +51,7 @@ export default function FitCircle() {
     const circleCenter =
       (global.window.innerWidth * newPosition) / 100 - circleSize / 2
 
-    setDiff(Math.abs(targetCircleCenter - circleCenter))
+    setDiff((Math.abs(targetCircleCenter - circleCenter) / circleSize) * 10)
     if (
       targetCircleCenter + targetSize / 2 >= circleCenter + circleSize / 2 &&
       targetCircleCenter - targetSize / 2 <= circleCenter - circleSize / 2
