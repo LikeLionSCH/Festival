@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import axios from "axios"
-import { useEffect } from "react"
-import { atom, useAtom } from "jotai"
+import axios from "axios";
+import { useEffect } from "react";
+import { atom, useAtom } from "jotai";
 
 export type Piece = {
-  row: number
-  col: number
-  pieceId: PieceId
-  team: "up" | "down"
-  key: string
-}
+  row: number;
+  col: number;
+  pieceId: PieceId;
+  team: "up" | "down";
+  key: string;
+};
 
 enum PieceId {
   UP_GIRAFFE = 0,
@@ -25,35 +25,35 @@ enum PieceId {
   DOWN_CHICKEN = 9,
 }
 
-const IsEmpty = -1
-const AiDelay = 1000
+const IsEmpty = -1;
+const AiDelay = 1000;
 
-const piecesAtom = atom<Piece[]>([])
-const turnAtom = atom<"up" | "down">("down")
-const isCanMoveAtom = atom(false)
-const user = atom<"up" | "down">("down")
-const whoWinAtom = atom<false | "up" | "down">(false)
-const arrivedUpUserAtom = atom(false)
-const arrivedDownUserAtom = atom(false)
+const piecesAtom = atom<Piece[]>([]);
+const turnAtom = atom<"up" | "down">("down");
+const isCanMoveAtom = atom(false);
+const user = atom<"up" | "down">("down");
+const whoWinAtom = atom<false | "up" | "down">(false);
+const arrivedUpUserAtom = atom(false);
+const arrivedDownUserAtom = atom(false);
 
 function useLogic() {
-  const [pieces, setPieces] = useAtom(piecesAtom)
-  const [turn, setTurn] = useAtom(turnAtom)
-  const [isCanMove, setIsCanMove] = useAtom(isCanMoveAtom)
-  const [userTeam, setUserTeam] = useAtom(user)
-  const [whoWin, setWhoWin] = useAtom(whoWinAtom)
-  const [arrivedUpUser, setArrivedUpUser] = useAtom(arrivedUpUserAtom)
-  const [arrivedDownUser, setArrivedDownUser] = useAtom(arrivedDownUserAtom)
+  const [pieces, setPieces] = useAtom(piecesAtom);
+  const [turn, setTurn] = useAtom(turnAtom);
+  const [isCanMove, setIsCanMove] = useAtom(isCanMoveAtom);
+  const [userTeam, setUserTeam] = useAtom(user);
+  const [whoWin, setWhoWin] = useAtom(whoWinAtom);
+  const [arrivedUpUser, setArrivedUpUser] = useAtom(arrivedUpUserAtom);
+  const [arrivedDownUser, setArrivedDownUser] = useAtom(arrivedDownUserAtom);
 
   useEffect(() => {
-    resetBoard()
-  }, [])
+    resetBoard();
+  }, []);
 
   function createPiece(
     row: number,
     col: number,
     pieceId: number,
-    team: "up" | "down"
+    team: "up" | "down",
   ) {
     const newPiece: Piece = {
       row,
@@ -61,256 +61,268 @@ function useLogic() {
       pieceId,
       team,
       key: Math.random().toString(36),
-    }
-    return newPiece
+    };
+    return newPiece;
   }
 
   // AI 예측 실행
   async function predictAI() {
-    await new Promise((resolve) => setTimeout(resolve, AiDelay))
+    await new Promise((resolve) => setTimeout(resolve, AiDelay));
     const boardData = new Array(10)
       .fill(0)
-      .map(() => new Array(8).fill(0).map(() => new Array(3).fill(0)))
+      .map(() => new Array(8).fill(0).map(() => new Array(3).fill(0)));
 
     pieces.forEach((piece) => {
-      const { row, col, pieceId: pieceId } = piece
-      boardData[pieceId][row][col] = 1
-    })
+      const { row, col, pieceId: pieceId } = piece;
+      boardData[pieceId][row][col] = 1;
+    });
 
-    const { data } = await axios.post("http://home.iubns.net:8000/predict", {
+    const { data } = await axios.post("http://192.168.1.62:8000/predict", {
       board: boardData,
       turn: turn === "up" ? 0 : 1,
-    })
+    });
 
-    const action = data.predicted_action
+    const action = data.predicted_action;
 
-    const totalCells = 8 * 3
-    const start_index = Math.floor(action / totalCells)
+    const totalCells = 8 * 3;
+    const start_index = Math.floor(action / totalCells);
 
-    const target_index = action % totalCells
-    const start_row = Math.floor(start_index / 3)
-    const start_col = start_index % 3
-    const target_row = Math.floor(target_index / 3)
-    const target_col = target_index % 3
+    const target_index = action % totalCells;
+    const start_row = Math.floor(start_index / 3);
+    const start_col = start_index % 3;
+    const target_row = Math.floor(target_index / 3);
+    const target_col = target_index % 3;
 
-    movePiece(start_row, start_col, target_row, target_col) // AI의 예측 이동
+    movePiece(start_row, start_col, target_row, target_col); // AI의 예측 이동
   }
 
   function resetBoard() {
-    const pieces: Array<Piece> = []
+    const pieces: Array<Piece> = [];
     // 상단 장 배치
-    pieces.push(createPiece(2, 0, PieceId.UP_GIRAFFE, "up"))
+    pieces.push(createPiece(2, 0, PieceId.UP_GIRAFFE, "up"));
     // 상단 왕 배치
-    pieces.push(createPiece(2, 1, PieceId.UP_LION, "up"))
+    pieces.push(createPiece(2, 1, PieceId.UP_LION, "up"));
     // 상단 상 배치
-    pieces.push(createPiece(2, 2, PieceId.UP_ELEPHANT, "up"))
+    pieces.push(createPiece(2, 2, PieceId.UP_ELEPHANT, "up"));
     // 상단 자 배치
-    pieces.push(createPiece(3, 1, PieceId.UP_CHICK, "up"))
+    pieces.push(createPiece(3, 1, PieceId.UP_CHICK, "up"));
 
     // 하단 자 배치
-    pieces.push(createPiece(4, 1, PieceId.DOWN_CHICK, "down"))
+    pieces.push(createPiece(4, 1, PieceId.DOWN_CHICK, "down"));
     // 하단 상 배치
-    pieces.push(createPiece(5, 0, PieceId.DOWN_ELEPHANT, "down"))
+    pieces.push(createPiece(5, 0, PieceId.DOWN_ELEPHANT, "down"));
     // 하단 왕 배치
-    pieces.push(createPiece(5, 1, PieceId.DOWN_LION, "down"))
+    pieces.push(createPiece(5, 1, PieceId.DOWN_LION, "down"));
     // 하단 장 배치
-    pieces.push(createPiece(5, 2, PieceId.DOWN_GIRAFFE, "down"))
+    pieces.push(createPiece(5, 2, PieceId.DOWN_GIRAFFE, "down"));
 
-    setPieces(pieces)
-    setTurn("down")
-    setWhoWin(false)
+    setPieces(pieces);
+    setTurn("down");
+    setWhoWin(false);
   }
 
   function movePiece(
     startRow: number,
     startCol: number,
     targetRow: number,
-    targetCol: number
+    targetCol: number,
   ) {
+    console.log("movePiece called:", {
+      startRow,
+      startCol,
+      targetRow,
+      targetCol,
+    });
     // 이동할 칸이 유효한지 확인
     if (!isValidMove(startRow, startCol, targetRow, targetCol)) {
-      setIsCanMove(true)
-      return
+      setIsCanMove(true);
+      return;
     }
 
-    const targetPieceId = getPieceIdFromPosition(targetRow, targetCol)
+    const targetPieceId = getPieceIdFromPosition(targetRow, targetCol);
     // 이동할 칸에 기물 있는지 확인
     if (targetPieceId !== IsEmpty) {
       const targetPiece = pieces.find(
-        (piece) => piece.row === targetRow && piece.col === targetCol
-      )
+        (piece) => piece.row === targetRow && piece.col === targetCol,
+      );
       if (targetPiece) {
-        catchPiece(targetPiece)
+        catchPiece(targetPiece);
       }
     }
-    const piece = getPieceFromPosition(startRow, startCol)
+    const piece = getPieceFromPosition(startRow, startCol);
 
     if (!piece) {
-      return
+      return;
     }
-    piece.row = targetRow
-    piece.col = targetCol
+    piece.row = targetRow;
+    piece.col = targetCol;
 
     if (piece.pieceId === PieceId.UP_CHICK && targetRow === 5) {
-      piece.pieceId = PieceId.UP_CHICKEN
+      piece.pieceId = PieceId.UP_CHICKEN;
     } else if (piece.pieceId === PieceId.DOWN_CHICK && targetRow === 2) {
-      piece.pieceId = PieceId.DOWN_CHICKEN
+      piece.pieceId = PieceId.DOWN_CHICKEN;
     }
 
     // 싱대 진영에 왕이 들어갔다면
-    const upLine = pieces.find((piece) => piece.pieceId === PieceId.UP_LION)
+    const upLine = pieces.find((piece) => piece.pieceId === PieceId.UP_LION);
     if (upLine && upLine.row === 5) {
       if (arrivedUpUser && targetPieceId !== PieceId.UP_LION) {
         setTimeout(() => {
-          setWhoWin("up")
-        }, AiDelay)
+          setWhoWin("up");
+        }, AiDelay);
       } else {
-        setArrivedUpUser(true)
+        setArrivedUpUser(true);
       }
     } else {
-      setArrivedUpUser(false)
+      setArrivedUpUser(false);
     }
-    const downLine = pieces.find((piece) => piece.pieceId === PieceId.DOWN_LION)
+    const downLine = pieces.find(
+      (piece) => piece.pieceId === PieceId.DOWN_LION,
+    );
     if (downLine && downLine.row === 2) {
       if (arrivedDownUser && targetPieceId !== PieceId.DOWN_LION) {
         setTimeout(() => {
-          setWhoWin("down")
-        }, AiDelay)
+          setWhoWin("down");
+        }, AiDelay);
       } else {
-        setArrivedDownUser(true)
+        setArrivedDownUser(true);
       }
     } else {
-      setArrivedDownUser(false)
+      setArrivedDownUser(false);
     }
 
     setPieces((prevPieces) => {
-      const newPieces = [...prevPieces]
-      return newPieces
-    })
-    setTurn(turn === "up" ? "down" : "up") // 턴 변경
+      const newPieces = [...prevPieces];
+      return newPieces;
+    });
+    setTurn(turn === "up" ? "down" : "up"); // 턴 변경
   }
 
   function getPieceFromPosition(row: number, col: number) {
-    const piece = pieces.find((piece) => piece.row === row && piece.col === col)
+    const piece = pieces.find(
+      (piece) => piece.row === row && piece.col === col,
+    );
     if (piece) {
-      return piece
+      return piece;
     }
-    return null
+    return null;
   }
 
   function getPieceIdFromPosition(row: number, col: number) {
-    const piece = pieces.find((piece) => piece.row === row && piece.col === col)
+    const piece = pieces.find(
+      (piece) => piece.row === row && piece.col === col,
+    );
     if (piece) {
-      return piece.pieceId
+      return piece.pieceId;
     }
-    return -1
+    return -1;
   }
 
   function pushPiece(piece: Piece) {
     setPieces((prevPieces) => {
-      const newPieces = [...prevPieces]
-      newPieces.push(piece)
-      return newPieces
-    })
+      const newPieces = [...prevPieces];
+      newPieces.push(piece);
+      return newPieces;
+    });
   }
 
   function removePiece(piece: Piece) {
     setPieces((prevPieces) => {
-      const newPieces = prevPieces.filter((p) => p.key !== piece.key)
-      return newPieces
-    })
+      const newPieces = prevPieces.filter((p) => p.key !== piece.key);
+      return newPieces;
+    });
   }
 
   function catchPiece(targetPiece: Piece) {
     switch (targetPiece.pieceId) {
       case PieceId.UP_GIRAFFE:
         if (getPieceIdFromPosition(6, 2) !== IsEmpty) {
-          const newPiece = createPiece(7, 2, PieceId.DOWN_GIRAFFE, "down")
-          pushPiece(newPiece)
+          const newPiece = createPiece(7, 2, PieceId.DOWN_GIRAFFE, "down");
+          pushPiece(newPiece);
         } else {
-          const newPiece = createPiece(6, 2, PieceId.DOWN_GIRAFFE, "down")
-          pushPiece(newPiece)
+          const newPiece = createPiece(6, 2, PieceId.DOWN_GIRAFFE, "down");
+          pushPiece(newPiece);
         }
-        break
+        break;
       case PieceId.UP_LION:
         setTimeout(() => {
-          setWhoWin("down")
-        }, AiDelay)
-        break
+          setWhoWin("down");
+        }, AiDelay);
+        break;
       case PieceId.UP_ELEPHANT:
         if (getPieceIdFromPosition(6, 1) !== IsEmpty) {
-          const newPiece = createPiece(7, 1, PieceId.DOWN_ELEPHANT, "down")
-          pushPiece(newPiece)
+          const newPiece = createPiece(7, 1, PieceId.DOWN_ELEPHANT, "down");
+          pushPiece(newPiece);
         } else {
-          const newPiece = createPiece(6, 1, PieceId.DOWN_ELEPHANT, "down")
-          pushPiece(newPiece)
+          const newPiece = createPiece(6, 1, PieceId.DOWN_ELEPHANT, "down");
+          pushPiece(newPiece);
         }
-        break
+        break;
       case PieceId.UP_CHICK:
         if (getPieceIdFromPosition(6, 0) !== IsEmpty) {
-          const newPiece = createPiece(7, 0, PieceId.DOWN_CHICK, "down")
-          pushPiece(newPiece)
+          const newPiece = createPiece(7, 0, PieceId.DOWN_CHICK, "down");
+          pushPiece(newPiece);
         } else {
-          const newPiece = createPiece(6, 0, PieceId.DOWN_CHICK, "down")
-          pushPiece(newPiece)
+          const newPiece = createPiece(6, 0, PieceId.DOWN_CHICK, "down");
+          pushPiece(newPiece);
         }
-        break
+        break;
       case PieceId.UP_CHICKEN:
         if (getPieceIdFromPosition(6, 0) !== IsEmpty) {
-          const newPiece = createPiece(7, 0, PieceId.DOWN_CHICK, "down")
-          pushPiece(newPiece)
+          const newPiece = createPiece(7, 0, PieceId.DOWN_CHICK, "down");
+          pushPiece(newPiece);
         } else {
-          const newPiece = createPiece(6, 0, PieceId.DOWN_CHICK, "down")
-          pushPiece(newPiece)
+          const newPiece = createPiece(6, 0, PieceId.DOWN_CHICK, "down");
+          pushPiece(newPiece);
         }
-        break
+        break;
       case PieceId.DOWN_CHICK:
         if (getPieceIdFromPosition(1, 2) !== IsEmpty) {
-          const newPiece = createPiece(0, 2, PieceId.UP_CHICK, "up")
-          pushPiece(newPiece)
+          const newPiece = createPiece(0, 2, PieceId.UP_CHICK, "up");
+          pushPiece(newPiece);
         } else {
-          const newPiece = createPiece(1, 2, PieceId.UP_CHICK, "up")
-          pushPiece(newPiece)
+          const newPiece = createPiece(1, 2, PieceId.UP_CHICK, "up");
+          pushPiece(newPiece);
         }
-        break
+        break;
       case PieceId.DOWN_ELEPHANT:
         if (getPieceIdFromPosition(1, 1) !== IsEmpty) {
-          const newPiece = createPiece(0, 1, PieceId.UP_ELEPHANT, "up")
-          pushPiece(newPiece)
+          const newPiece = createPiece(0, 1, PieceId.UP_ELEPHANT, "up");
+          pushPiece(newPiece);
         } else {
-          const newPiece = createPiece(1, 1, PieceId.UP_ELEPHANT, "up")
-          pushPiece(newPiece)
+          const newPiece = createPiece(1, 1, PieceId.UP_ELEPHANT, "up");
+          pushPiece(newPiece);
         }
-        break
+        break;
       case PieceId.DOWN_LION:
         setTimeout(() => {
-          setWhoWin("up")
-        }, AiDelay)
-        break
+          setWhoWin("up");
+        }, AiDelay);
+        break;
       case PieceId.DOWN_GIRAFFE:
         if (getPieceIdFromPosition(1, 0) !== IsEmpty) {
-          const newPiece = createPiece(0, 0, PieceId.UP_GIRAFFE, "up")
-          pushPiece(newPiece)
+          const newPiece = createPiece(0, 0, PieceId.UP_GIRAFFE, "up");
+          pushPiece(newPiece);
         } else {
-          const newPiece = createPiece(1, 0, PieceId.UP_GIRAFFE, "up")
-          pushPiece(newPiece)
+          const newPiece = createPiece(1, 0, PieceId.UP_GIRAFFE, "up");
+          pushPiece(newPiece);
         }
-        break
+        break;
       case PieceId.DOWN_CHICKEN:
         if (getPieceIdFromPosition(1, 2) !== IsEmpty) {
-          const newPiece = createPiece(0, 2, PieceId.UP_CHICK, "up")
-          pushPiece(newPiece)
+          const newPiece = createPiece(0, 2, PieceId.UP_CHICK, "up");
+          pushPiece(newPiece);
         } else {
-          const newPiece = createPiece(1, 2, PieceId.UP_CHICK, "up")
-          pushPiece(newPiece)
+          const newPiece = createPiece(1, 2, PieceId.UP_CHICK, "up");
+          pushPiece(newPiece);
         }
-        break
+        break;
       default:
-        break
+        break;
     }
 
     if (targetPiece) {
-      removePiece(targetPiece)
+      removePiece(targetPiece);
     }
   }
 
@@ -319,97 +331,97 @@ function useLogic() {
     startRow: number,
     startCol: number,
     targetRow: number,
-    targetCol: number
+    targetCol: number,
   ) {
-    const piece = getPieceIdFromPosition(startRow, startCol)
-    const targetPiece = getPieceIdFromPosition(targetRow, targetCol)
+    const piece = getPieceIdFromPosition(startRow, startCol);
+    const targetPiece = getPieceIdFromPosition(targetRow, targetCol);
     // 윗사람이 자신의 말이 있는 곳으로 이동 불가
     if (piece <= 4 && targetPiece <= 4 && targetPiece !== -1) {
-      return false
+      return false;
     }
     if (piece >= 5 && targetPiece >= 5) {
-      return false
+      return false;
     }
     // 이동할 칸이 보드 범위를 벗어나는지 확인
     if (startRow >= 2 && startRow <= 5) {
       if (targetRow < 2 || targetRow > 5) {
-        return false
+        return false;
       }
     }
 
     if (startRow < 2) {
       if (turn === "down") {
-        return false
+        return false;
       }
-      return targetRow < 5
+      return targetRow < 5;
     }
     if (startRow > 5) {
       if (turn === "up") {
-        return false
+        return false;
       }
-      return targetRow > 2
+      return targetRow > 2;
     }
 
-    const rowDiff = Math.abs(targetRow - startRow)
-    const colDiff = Math.abs(targetCol - startCol)
+    const rowDiff = Math.abs(targetRow - startRow);
+    const colDiff = Math.abs(targetCol - startCol);
 
     // 상하좌우 기물 이동
     if (piece === PieceId.UP_GIRAFFE || piece === PieceId.DOWN_GIRAFFE) {
       if (rowDiff == 1 && colDiff === 0) {
-        return true
+        return true;
       }
       if (colDiff == 1 && rowDiff === 0) {
-        return true
+        return true;
       }
-      return false
+      return false;
     }
     // 대각선 기물 이동
     if (piece === PieceId.UP_ELEPHANT || piece === PieceId.DOWN_ELEPHANT) {
       if (rowDiff === 1 && colDiff === 1) {
-        return true
+        return true;
       }
-      return false
+      return false;
     }
     // 왕 기물 이동
     if (piece === 1 || piece === 7) {
       if (rowDiff <= 1 && colDiff <= 1) {
-        return true
+        return true;
       }
-      return false
+      return false;
     }
     // 자 기물 이동
     if (piece === PieceId.UP_CHICK) {
-      return rowDiff === 1 && startRow < targetRow && colDiff === 0
+      return rowDiff === 1 && startRow < targetRow && colDiff === 0;
     }
     if (piece === PieceId.DOWN_CHICK) {
-      return rowDiff === 1 && startRow > targetRow && colDiff === 0
+      return rowDiff === 1 && startRow > targetRow && colDiff === 0;
     }
     // 후 기물 이동
     if (piece === PieceId.UP_CHICKEN) {
       if (rowDiff === 1 && colDiff === 0) {
-        return true
+        return true;
       }
       if (colDiff === 1 && rowDiff === 0) {
-        return true
+        return true;
       }
       if (rowDiff === 1 && colDiff === 1) {
-        return startRow < targetRow
+        return startRow < targetRow;
       }
-      return false
+      return false;
     }
     if (piece === PieceId.DOWN_CHICKEN) {
       if (rowDiff === 1 && colDiff === 0) {
-        return true
+        return true;
       }
       if (colDiff === 1 && rowDiff === 0) {
-        return true
+        return true;
       }
       if (rowDiff === 1 && colDiff === 1) {
-        return startRow > targetRow
+        return startRow > targetRow;
       }
-      return false
+      return false;
     }
-    return true
+    return true;
   }
 
   return {
@@ -424,7 +436,7 @@ function useLogic() {
     setUserTeam,
     resetBoard,
     whoWin,
-  }
+  };
 }
 
-export default useLogic
+export default useLogic;

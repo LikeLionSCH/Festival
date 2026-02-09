@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import useLogic from "./useLogic"
-import { Alert, Snackbar, Stack } from "@mui/material"
-import Cell, { CellSize } from "./cell"
-import GameModal from "./GameModal"
-import SelectGameMode from "./SelectGameMode"
-import styles from "./page.module.css"
+import { useEffect, useState } from "react";
+import useLogic from "./useLogic";
+import { Alert, Snackbar, Stack } from "@mui/material";
+import Cell, { CellSize } from "./cell";
+import GameModal from "./GameModal";
+import SelectGameMode from "./SelectGameMode";
+import styles from "./page.module.css";
 
 type Position = {
-  row: number
-  col: number
-}
+  row: number;
+  col: number;
+};
 export default function Page() {
   const {
     pieces,
@@ -22,46 +22,46 @@ export default function Page() {
     setIsCanMove,
     getPieceFromPosition,
     userTeam,
-  } = useLogic()
+  } = useLogic();
 
-  const [gameMode, setGameMode] = useState<"AI" | "User" | false>(false)
+  const [gameMode, setGameMode] = useState<"AI" | "User" | false>(false);
 
   const [startPosition, setStartPosition] = useState<Position>({
     row: -1,
     col: -1,
-  })
+  });
 
   useEffect(() => {
     if (pieces.length === 0) {
-      return
+      return;
     }
     if (turn !== userTeam && gameMode === "AI") {
-      predictAI()
+      predictAI();
     }
-  }, [turn, pieces, gameMode])
+  }, [turn, gameMode]);
 
   function handleCellClick(row: number, col: number) {
     if (gameMode === "AI" && turn !== userTeam) {
       // AI 턴일 때는 클릭 무시
-      return
+      return;
     }
     if (startPosition.row !== -1 && startPosition.col !== -1) {
       // 두 번째 클릭: 이동할 위치 설정
-      const { row: startRow, col: startCol } = startPosition
-      movePiece(startRow, startCol, row, col)
-      setStartPosition({ row: -1, col: -1 }) // 시작 위치 초기화
-      return
+      const { row: startRow, col: startCol } = startPosition;
+      movePiece(startRow, startCol, row, col);
+      setStartPosition({ row: -1, col: -1 }); // 시작 위치 초기화
+      return;
     }
 
     // 첫 번째 클릭: 시작 위치 설정
-    const startPiece = getPieceFromPosition(row, col)
+    const startPiece = getPieceFromPosition(row, col);
     if (startPiece === null) {
-      return
+      return;
     }
     if (startPiece.team !== turn) {
-      return
+      return;
     }
-    setStartPosition({ row, col })
+    setStartPosition({ row, col });
   }
 
   // 클릭용보드랑 보여주기 보드 2개
@@ -70,33 +70,33 @@ export default function Page() {
       <Stack zIndex={canClick ? 10 : 0}>
         {new Array(8).fill(0).map((_, row) => {
           return new Array(3).fill(0).map((_, col) => {
-            let boardColor = ""
+            let boardColor = "";
             if (!canClick) {
               // 클릭 할 수 있을때 색 있음 안보임
-              boardColor = "rgb(254, 251, 220)"
+              boardColor = "rgb(254, 251, 220)";
             }
-            let rowIndex = row
+            let rowIndex = row;
             if (row === 0 || row === 1) {
-              rowIndex = row - 1
+              rowIndex = row - 1;
             }
             if (row === 6 || row === 7) {
-              rowIndex = row + 1
+              rowIndex = row + 1;
             }
             if (row === 2 && !canClick) {
-              boardColor = "#ABDEEE"
+              boardColor = "#ABDEEE";
             }
             if (row === 5 && !canClick) {
-              boardColor = "#B6CfB6"
+              boardColor = "#B6CfB6";
             }
-            let isTurn = false
+            let isTurn = false;
             if (turn === "up" && rowIndex <= 1) {
-              isTurn = true
+              isTurn = true;
             }
             if (turn === "down" && rowIndex >= 7) {
-              isTurn = true
+              isTurn = true;
             }
             if (canClick) {
-              isTurn = false
+              isTurn = false;
             }
             return (
               <div
@@ -113,23 +113,23 @@ export default function Page() {
                 }}
                 onClick={() => handleCellClick(row, col)}
               ></div>
-            )
-          })
+            );
+          });
         })}
       </Stack>
-    )
+    );
   }
 
   function SelectedPosition() {
     if (startPosition.row === -1 && startPosition.col === -1) {
-      return null
+      return null;
     }
-    let row = startPosition.row
+    let row = startPosition.row;
     if (row === 0 || row === 1) {
-      row = startPosition.row - 1
+      row = startPosition.row - 1;
     }
     if (row === 6 || row === 7) {
-      row = startPosition.row + 1
+      row = startPosition.row + 1;
     }
     return (
       <Stack
@@ -141,7 +141,7 @@ export default function Page() {
         top={row * CellSize + "px"}
         style={{ backgroundColor: "rgba(0, 0, 0, 0.3)" }}
       ></Stack>
-    )
+    );
   }
 
   return (
@@ -181,7 +181,7 @@ export default function Page() {
           }}
         >
           {pieces.map((piece) => {
-            return <Cell key={piece.key} piece={piece} />
+            return <Cell key={piece.key} piece={piece} />;
           })}
           <Board canClick={true} />
           <Board canClick={false} />
@@ -194,5 +194,5 @@ export default function Page() {
       </div>
       <GameModal gameMode={gameMode} />
     </div>
-  )
+  );
 }
